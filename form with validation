@@ -1,0 +1,31 @@
+import { useState, useContext } from 'react';
+import { AuthContext } from '../utils/AuthContext';
+
+export default function Login() {
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const { login } = useContext(AuthContext);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Client-side validation
+    if (!form.email || !form.password) return setErrors({ general: 'All fields required' });
+    try {
+      await login(form.email, form.password);
+    } catch (err) {
+      setErrors({ general: 'Invalid credentials' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-96">
+        <h2 className="text-2xl mb-4">Login</h2>
+        {errors.general && <p className="text-red-500">{errors.general}</p>}
+        <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full p-2 border mb-2" />
+        <input type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full p-2 border mb-2" />
+        <button type="submit" className="w-full bg-blue-500 text-white p-2">Login</button>
+      </form>
+    </div>
+  );
+}
