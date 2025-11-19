@@ -1,0 +1,56 @@
+import { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../utils/AuthContext';
+
+export default function TaskList() {
+  const [tasks, setTasks] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('');
+  const { user, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [search, filter]);
+
+  const fetchTasks = async () => {
+    const res = await axios.get(`http://localhost:5000/api/tasks?search=${search}&completed=${filter}`);
+    setTasks(res.data);
+  };
+
+  const addTask = async (title, description) => {
+    await axios.post('http://localhost:5000/api/tasks', { title, description });
+    fetchTasks();
+  };
+
+  const updateTask = async (id, updates) => {
+    await axios.put(`http://localhost:5000/api/tasks/${id}`, updates);
+    fetchTasks();
+  };
+
+  const deleteTask = async (id) => {
+    await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+    fetchTasks();
+  };
+
+  return (
+    <div className="p-6">
+      <h1>Dashboard</h1>
+      <p>Welcome, {user?.name}!</p>
+      <button onClick={logout} className="bg-red-500 text-white p-2">Logout</button>
+      <input placeholder="Search tasks" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <option value="">All</option><option value="true">Completed</option><option value="false">Pending</option>
+      </select>
+      <ul>
+        {tasks.map(task => (
+          <li key={task._id}>
+            <input type="checkbox" checked={task.completed} onChange={(e) => updateTask(task._id, { completed: e.target.checked })} />
+            {task.title} - {task.description}
+            <button onClick={() => deleteTask(task._id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      {/* Add form for new tasks */}
+    </div>
+  );
+}
